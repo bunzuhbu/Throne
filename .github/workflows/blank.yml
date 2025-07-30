@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          token: ${{ secrets.TOKEN }}
+          token: ${{ github.token }}
       - name: Fetch release version
         id: git-check
         run: |
