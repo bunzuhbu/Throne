@@ -64,6 +64,7 @@ jobs:
         run: |
             git config --global user.name 'bunzuhbu'
             git config --global user.email 'bunzuhbu@users.noreply.github.com'
+            export PATH=$PATH:$HOME/go/bin
             export basedir="${basedir:-${PWD}}"
             export outdir="${outdir:-${basedir}/release}"
             mkdir -p "${outdir}"
