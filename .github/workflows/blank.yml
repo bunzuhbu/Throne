@@ -47,9 +47,23 @@ jobs:
             go
           key: go-cache
 
+      - name: Install Protoc
+        if: steps.git-check.outputs.modified == 'true'
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+        uses: arduino/setup-protoc@v3
+        
+      - name: Installing protoc-gen-go
+        if: steps.git-check.outputs.modified == 'true'
+        run: |
+          go install github.com/golang/protobuf/protoc-gen-go@latest
+          go install github.com/chai2010/protorpc/protoc-gen-protorpc@latest
+
       - name: Commit latest release version
         if: steps.git-check.outputs.modified == 'true'
         run: |
+            git config --global user.name 'bunzuhbu'
+            git config --global user.email 'bunzuhbu@users.noreply.github.com'
             export basedir="${basedir:-${PWD}}"
             export outdir="${outdir:-${basedir}/release}"
             mkdir -p "${outdir}"
@@ -58,7 +72,12 @@ jobs:
             pushd "${outdir}"
             git clone --depth 1 --recurse-submodules --single-branch --branch "${rev}" https://github.com/throneproj/Throne.git "Throne-${ver}"
             pushd "${outdir}/Throne-${ver}/core/server"
-            HOME="${basedir}" echo go mod download github.com/stretchr/testify
+            pushd gen
+            protoc -I . --go_out=. --protorpc_out=. libcore.proto
+            git add *
+            git commit -am update
+            popd
+            HOME="${basedir}" go mod tidy     #download github.com/stretchr/testify
             HOME="${basedir}" go mod vendor
             curl https://api.github.com/repos/sagernet/sing-box/releases/latest | jq -r '.name' > "${outdir}/Throne-${ver}.Sagernet.SingBox.Version.txt"
             mv vendor "${outdir}"
@@ -71,8 +90,6 @@ jobs:
             popd
             export GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
             gh release create "${ver}" "${outdir}/"{{Throne,vendor}"-${ver}.tar.gz","Throne-${ver}.Sagernet.SingBox.Version.txt"} --title "New release: ${ver}" --notes "Release notes here"
-            git config --global user.name 'bunzuhbu'
-            git config --global user.email 'bunzuhbu@users.noreply.github.com'
             git add autoupdate.txt
             git add version.txt
             git add throne_version.txt
