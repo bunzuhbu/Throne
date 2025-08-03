@@ -75,8 +75,6 @@ jobs:
             pushd "${outdir}/Throne-${ver}/core/server"
             pushd gen
             protoc -I . --go_out=. --protorpc_out=. libcore.proto
-            git add *
-            git commit -am update
             popd
             HOME="${basedir}" go mod tidy     #download github.com/stretchr/testify
             HOME="${basedir}" go mod vendor
@@ -87,7 +85,7 @@ jobs:
             tar -czf "${outdir}/vendor-${ver}.tar.gz" vendor
             popd
             pushd "${outdir}/Throne-${ver}"
-            git ls-files --recurse-submodules | tar --transform="s,^,Throne-${ver}/,S" -caf "${outdir}/Throne-${ver}.tar.gz" -T-
+            (git ls-files --recurse-submodules ; echo core/server/gen/libcore.pb.go ; echo core/server/gen/libcore.pb.protorpc.go ) | tar --transform="s,^,Throne-${ver}/,S" -caf "${outdir}/Throne-${ver}.tar.gz" -T-
             popd
             export GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
             gh release create "${ver}" "${outdir}/"{{Throne,vendor}"-${ver}.tar.gz","Throne-${ver}.Sagernet.SingBox.Version.txt"} --title "New release: ${ver}" --notes "Release notes here"
