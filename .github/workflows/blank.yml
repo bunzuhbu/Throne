@@ -16,7 +16,7 @@ jobs:
       - name: Fetch release version
         id: git-check
         run: |
-          ver="$(curl --silent https://api.github.com/repos/throneproj/Throne/releases | jq -r 'map(select(.prerelease)) | first | .tag_name')"
+          ver="$(curl --silent https://api.github.com/repos/throneproj/Throne/releases/latest | jq -r '.tag_name')"
           echo "${ver}" > autoupdate.txt
           echo ::set-output name=revision::"${ver}"
           ver="$(echo "${ver}" | sed 's~-~_~g;')"
